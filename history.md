@@ -252,3 +252,94 @@ Final: Ready-to-run image with all tools
 8. Document tool usage patterns and best practices
 
 ---
+
+## 2026-02-23 - SQLite Migration for Persistent Memory
+
+### Overview
+Migrated persistent memory system from JSON flat-file to SQLite database for better performance, reliability, and query capabilities.
+
+### Technical Changes
+
+#### Database Schema
+```sql
+CREATE TABLE memories (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    timestamp TEXT NOT NULL,      -- Initial creation time
+    updated_at TEXT NOT NULL       -- Last modification time
+)
+```
+
+#### File Changes
+- **Storage Location**: `/app/backend/data/agent_memory.db` (was `agent_memory.json`)
+- **Library**: Built-in `sqlite3` module (no new dependencies)
+- **Version**: Bumped to 2.0.0
+
+#### Implementation Details
+
+1. **Connection Management**
+   - Context manager pattern for automatic cleanup
+   - Transaction support with rollback on errors
+   - Row factory for dict-like access
+
+2. **Database Initialization**
+   - Auto-creates table on first run
+   - Runs in `__init__()` method
+   - Uses `IF NOT EXISTS` for idempotency
+
+3. **CRUD Operations**
+   - **Save**: UPSERT pattern (INSERT with ON CONFLICT)
+   - **Recall**: Single SELECT with metadata
+   - **List**: Ordered by key with timestamp info
+   - **Delete**: Returns not-found message if key missing
+
+4. **New Feature: Search**
+   - `search_memories(search_term)` - New function
+   - Searches both keys and values using LIKE
+   - Returns preview (first 100 chars) of matches
+   - Orders by most recently updated
+
+### Advantages Over JSON
+
+1. **Performance**: Indexed lookups vs full-file reads
+2. **Concurrency**: Better handling of simultaneous access
+3. **Queries**: Native search without loading all data
+4. **Updates**: Tracks both creation and modification times
+5. **Reliability**: ACID compliance, no file corruption risk
+6. **Scalability**: Handles thousands of entries efficiently
+
+### Backward Compatibility
+
+- **Function Signatures**: Identical to JSON version
+- **Return Messages**: Same format and structure
+- **Tool Interface**: No changes to Open WebUI integration
+- **Data Migration**: Manual (old JSON data not auto-imported)
+
+### Database Location
+
+The SQLite file lives at `/app/backend/data/agent_memory.db` inside the Docker container, which is mapped to the `open-webui-data` volume. This ensures:
+- Persistence across container restarts
+- Atomic writes with journaling
+- No volume mounting required (unlike PDFs)
+
+### Testing Checklist
+
+- [ ] Database auto-creates on first tool use
+- [ ] save_memory creates new entries
+- [ ] save_memory updates existing entries
+- [ ] recall_memory shows updated_at when different from timestamp
+- [ ] list_memories shows all entries sorted
+- [ ] delete_memory removes entries
+- [ ] search_memories finds matches in keys and values
+- [ ] Data persists after container restart
+- [ ] No conflicts with concurrent access
+
+### Next Steps
+
+1. Test SQLite implementation in Docker environment
+2. Consider adding memory expiration/TTL feature
+3. Implement memory tagging/categorization
+4. Add memory export/import functionality
+5. Create migration script from JSON to SQLite (if needed)
+
+---

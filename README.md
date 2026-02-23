@@ -9,7 +9,7 @@ open-webui/
 ├── tools/                  # AI Agent tools
 │   ├── search_web.py       # Web search (DuckDuckGo)
 │   ├── read_pdf.py         # PDF reader
-│   └── persistent_memory.py # Persistent memory storage
+│   └── persistent_memory.py # SQLite-based memory storage
 ├── plan.md                 # Original plan (Portuguese)
 └── history.md              # Development history log
 ```
@@ -90,7 +90,13 @@ List all memories
   - `recall_memory(key: str)` - Retrieve information
   - `list_memories()` - List all saved keys
   - `delete_memory(key: str)` - Delete a memory entry
-- **Storage:** JSON file in `/app/backend/data/agent_memory.json`
+  - `search_memories(search_term: str)` - Search keys and values
+- **Storage:** SQLite database at `/app/backend/data/agent_memory.db`
+- **Features:**
+  - ACID-compliant transactions
+  - Automatic timestamp tracking (created and updated)
+  - Full-text search capabilities
+  - Indexed queries for fast lookups
 - **Persistence:** Data persists across container restarts
 
 ## 🛠️ Management Commands
