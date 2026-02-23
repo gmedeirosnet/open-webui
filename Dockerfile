@@ -4,7 +4,8 @@ FROM ghcr.io/open-webui/open-webui:main
 # Install Python dependencies for tools
 RUN pip install --no-cache-dir \
     httpx \
-    pymupdf
+    pymupdf \
+    duckduckgo-search
 
 # Create tools directory
 RUN mkdir -p /app/backend/data/tools

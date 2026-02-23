@@ -54,9 +54,11 @@ In Open WebUI:
 
 Try these example prompts:
 
-**Web Search:**
+**Web Search (Real-time Internet Access):**
 ```
-Search the web for "Python best practices 2026"
+What's the latest news about artificial intelligence?
+Search for recent updates on Python 3.13
+Find tutorials for Docker best practices
 ```
 
 **PDF Reading:**
@@ -74,9 +76,15 @@ List all memories
 ## 📋 Available Tools
 
 ### 🔍 Web Search Tool
-- **Function:** `search_web(query: str)`
-- **Description:** Searches DuckDuckGo and returns top results
-- **Usage:** Automatically invoked when you ask to search the web
+- **Function:** `search_web(query: str, max_results: int = 5)`
+- **Description:** Real-time web search with URLs and content snippets
+- **Features:**
+  - Returns actual web page URLs (not just summaries)
+  - Provides page titles and descriptions
+  - Timestamps each search
+  - Configurable number of results (default: 5)
+  - Privacy-focused (DuckDuckGo doesn't track)
+- **Usage:** Automatically invoked when you ask to search the web or need current information
 
 ### 📄 PDF Reader Tool
 - **Function:** `read_pdf(filepath: str)`

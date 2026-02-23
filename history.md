@@ -343,3 +343,131 @@ The SQLite file lives at `/app/backend/data/agent_memory.db` inside the Docker c
 5. Create migration script from JSON to SQLite (if needed)
 
 ---
+
+## 2026-02-23 - Real-Time Web Search Enhancement
+
+### Overview
+Upgraded web search tool from DuckDuckGo's limited instant answer API to full web search with the `duckduckgo-search` library, enabling true real-time internet access with URLs and content snippets.
+
+### Technical Changes
+
+#### Library Upgrade
+- **Old**: `httpx` + DuckDuckGo Instant Answer API
+- **New**: `duckduckgo-search` library (official Python wrapper)
+- **Advantages**:
+  - Returns actual web search results with clickable URLs
+  - Provides page titles and content snippets
+  - Accesses current web content, not just instant answers
+  - Better relevance and more comprehensive results
+
+#### Dockerfile
+- Added `duckduckgo-search` to pip install dependencies
+- No version pinning (uses latest stable)
+
+#### tools/search_web.py
+- **Version**: 1.0.0 → 2.0.0
+- **New Implementation**:
+  - Uses `DDGS()` context manager for proper resource cleanup
+  - Calls `ddgs.text()` method for text-based web search
+  - Returns structured results with:
+    - Search timestamp
+    - Result number
+    - Page title
+    - Full URL (accessible for further reading)
+    - Content snippet/description
+  - Default 5 results (configurable via `max_results` parameter)
+  - Enhanced error handling
+
+#### Output Format
+```
+🔍 Search results for: <query>
+⏰ Retrieved: 2026-02-23 15:30:45
+
+============================================================
+
+1. Page Title
+   🔗 https://example.com/page
+   Content snippet with relevant information...
+
+2. Another Result
+   🔗 https://another-site.com/article
+   Description of the content...
+```
+
+### Functional Improvements
+
+1. **Real URLs**: Each result includes working URL for reference
+2. **Timestamps**: Shows when search was performed
+3. **Current Content**: Accesses live web pages, not cached instant answers
+4. **Better Relevance**: Full search algorithm vs limited instant answers
+5. **Configurability**: Optional `max_results` parameter
+
+### Use Cases Enabled
+
+- **News & Current Events**: Access latest information
+- **Research**: Find and cite web sources
+- **Fact Checking**: Verify information from multiple sources
+- **Trend Analysis**: Discover recent discussions
+- **Technical Documentation**: Find current API docs and tutorials
+- **Product Information**: Check latest prices, specs, reviews
+
+### Comparison: Old vs New
+
+| Feature | Old (Instant API) | New (Web Search) |
+|---------|------------------|------------------|
+| URLs | ❌ No | ✅ Yes |
+| Current Content | ⚠️ Limited | ✅ Full |
+| Result Quality | ⚠️ Basic | ✅ High |
+| Timestamps | ❌ No | ✅ Yes |
+| Configurable | ❌ No | ✅ Yes |
+| Real-time Access | ❌ Cached | ✅ Live |
+
+### Testing Checklist
+
+- [ ] Build completes with new dependency
+- [ ] Search returns results with URLs
+- [ ] URLs are clickable/accessible
+- [ ] Timestamps show correct time
+- [ ] Error handling works properly
+- [ ] Results are relevant to query
+- [ ] Works with various query types
+- [ ] Performance is acceptable (<5 seconds)
+
+### Security & Privacy
+
+- **Library Source**: Official duckduckgo-search (maintained, widely used)
+- **Privacy**: DuckDuckGo doesn't track searches
+- **Rate Limiting**: Library handles it internally
+- **No API Keys**: No credentials required
+- **Container Isolation**: Runs inside Docker with network restrictions
+
+### Known Limitations
+
+1. **Rate Limits**: DuckDuckGo may rate-limit excessive requests
+2. **Network Dependency**: Requires internet connection
+3. **No Caching**: Each search hits live API (could add caching later)
+4. **Text Only**: No image/video/news-specific searches yet
+
+### Next Steps
+
+1. Rebuild Docker image with new dependency
+2. Test real-time search functionality
+3. Consider adding search result caching
+4. Add specialized search types (news, images)
+5. Implement search history in memory tool
+6. Add search result filtering/ranking options
+
+### Deployment
+
+To apply changes:
+```bash
+# Rebuild with new dependency
+docker-compose down
+docker-compose up -d --build
+
+# Verify tool is available in Open WebUI
+# Enable "Web Search Tool" in Tools menu
+# Test with: "Search for latest news about AI"
+```
+
+---

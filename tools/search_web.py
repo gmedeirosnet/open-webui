@@ -1,45 +1,50 @@
 """
 title: Web Search Tool
 author: Personal AI Agent
-version: 1.0.0
-description: Searches the web using DuckDuckGo API
+version: 2.0.0
+description: Real-time web search using DuckDuckGo with URLs and snippets
 """
 
-import httpx
+from duckduckgo_search import DDGS
+from datetime import datetime
 
 
 class Tools:
     def __init__(self):
         pass
 
-    def search_web(self, query: str) -> str:
+    def search_web(self, query: str, max_results: int = 5) -> str:
         """
-        Searches the web using DuckDuckGo.
+        Searches the web in real-time using DuckDuckGo.
+        Returns URLs, titles, and content snippets.
 
         :param query: The search term
-        :return: Search results
+        :param max_results: Number of results to return (default: 5)
+        :return: Formatted search results with URLs
         """
         try:
-            url = "https://api.duckduckgo.com/"
-            params = {"q": query, "format": "json", "no_html": 1}
-            r = httpx.get(url, params=params, timeout=10)
-            data = r.json()
-
-            results = []
-            for item in data.get("RelatedTopics", [])[:5]:
-                if "Text" in item:
-                    results.append(item["Text"])
-                elif "Topics" in item:
-                    for subitem in item["Topics"][:3]:
-                        if "Text" in subitem:
-                            results.append(subitem["Text"])
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=max_results))
 
             if not results:
-                # Try abstract if no related topics
-                abstract = data.get("AbstractText", "")
-                if abstract:
-                    results.append(abstract)
+                return f"No results found for '{query}'."
 
-            return "\n\n".join(results) if results else "No results found."
+            formatted_results = []
+            formatted_results.append(f"🔍 Search results for: {query}")
+            formatted_results.append(f"⏰ Retrieved: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            formatted_results.append("\n" + "="*60 + "\n")
+
+            for idx, result in enumerate(results, 1):
+                title = result.get('title', 'No title')
+                url = result.get('href', 'No URL')
+                snippet = result.get('body', 'No description')
+
+                formatted_results.append(f"{idx}. {title}")
+                formatted_results.append(f"   🔗 {url}")
+                formatted_results.append(f"   {snippet}")
+                formatted_results.append("")
+
+            return "\n".join(formatted_results)
+
         except Exception as e:
-            return f"Error searching: {str(e)}"
+            return f"❌ Error searching: {str(e)}"
