@@ -1,6 +1,4 @@
 services:
-
-  # ── Open WebUI ────────────────────────────────────────────────────────────
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -9,21 +7,18 @@ services:
       - "3000:8080"
     volumes:
       - open-webui-data:/app/backend/data
-    # Use host network mode for Ubuntu (simpler than host-gateway)
-    network_mode: host
     environment:
-      # ── LM Studio (running on Ubuntu host) ─────────────────────────────────
+      # Use host IP directly (replace with your actual host IP)
       - ENABLE_OPENAI_API=true
-      - OPENAI_API_BASE_URL=http://localhost:1234/v1
+      - OPENAI_API_BASE_URL=http://192.168.1.82:1234/v1
       - OPENAI_API_KEY=lm-studio
+
+      - WEBUI_NAME=Local AI
+      - WEBUI_SECRET_KEY=change-me-to-a-random-string
 
       # ── Ollama (if you want to add it later) ──────────────────────────────
       # - ENABLE_OLLAMA_API=true
       # - OLLAMA_BASE_URL=http://localhost:11434
-
-      # ── General ────────────────────────────────────────────────────────────
-      - WEBUI_NAME=Local AI
-      - WEBUI_SECRET_KEY=change-me-to-a-random-string
 
 volumes:
   open-webui-data:
